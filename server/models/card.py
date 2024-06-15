@@ -1,12 +1,12 @@
-from typing import List, Optional
+from typing import List, Dict, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 class CardSchema(BaseModel):
     id: str = Field(...)
     name: str = Field(...)
-    drop_areas: list = Field(...) # List of strings (map ids)
+    drop_areas: List[str] = Field(...) # List of strings (map ids)
     stack_size: int = Field(...)
-    reward_text: Optional[dict] = Field({})
+    reward_text: Optional[List[Dict]] = Field({})
     chaos_value: float = Field(...)
     divine_value: float = Field(...)
     art_url: str = Field(...)
