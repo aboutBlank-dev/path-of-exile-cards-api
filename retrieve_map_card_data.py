@@ -1,5 +1,5 @@
 import re
-from typing import Tuple
+from typing import Dict, List, Tuple, TypedDict
 import requests
 
 URL = "https://www.poewiki.net/w/api.php"
@@ -7,10 +7,54 @@ POE_LEAGUE_URL = "https://api.pathofexile.com/leagues"
 POE_NINJA_DIV_URL = "https://poe.ninja/api/data/itemoverview?type=DivinationCard&league="
 CARD_ART_URL_BASE = "https://web.poecdn.com/image/divination-card/"
 
-'''
-Get all divination cards and their drop areas from the wiki and poe.ninja
-'''
-def get_card_map_data() -> Tuple[dict, dict]:
+class Map(TypedDict):
+    id: str
+    name: str
+    unique: bool
+    alias: str
+
+class Card(TypedDict):
+    id: str
+    name: str
+    drop_areas: List[str]
+    stack_size: int
+    reward_text: List[Dict[str, str]]
+    chaos_value: float
+    divine_value: float
+    art_url: str
+    alias: str
+
+def get_map_card_data() -> Tuple[Dict[str, Map], Dict[str, Card]]:
+    """
+    Fetches the current league, maps and cards from the PoE Wiki API and PoE Ninja API.
+
+    Returns:
+        Tuple[Dict[str, Map], Dict[str, Card]]: A Tuple containing a Dictionary of Maps and a Dictionary of Cards.
+    """
+    current_league = fetch_current_league()
+    if(current_league == None):
+        return {}, {}
+
+    maps = fetch_maps(current_league)
+    cards = fetch_cards(current_league, maps)
+
+    if (len(maps) < 1 or len(cards) < 1):
+        return {}, {}
+
+    #Remove any area that has no cards
+    maps = {k: v for k, v in maps.items() if "cards" in v}
+
+    return maps, cards
+    
+
+def fetch_current_league() -> str:
+    """
+    Fetch current league information from the Path of Exile API.
+
+    Returns:
+        str: The current league id.
+    """
+
     current_leagues = requests.get(
         POE_LEAGUE_URL, 
         headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'},
@@ -19,11 +63,19 @@ def get_card_map_data() -> Tuple[dict, dict]:
             "type": "main",
         }).json()
 
-    current_league = ""
     for league in current_leagues:
         if "current" in league["category"]:
-            current_league = league["category"]["id"]
-            break
+            return league["category"]["id"]
+    
+    return None
+
+def fetch_maps(current_league: str) -> Dict[str, Map]:
+    """
+        Fetch Map and Area data from PoE Wiki API (cargoquery)
+
+        Returns:
+            Dict[str, Map]: A Dictionary of Maps. Where the key is the Map id and the value is a Dictionary representing the Map
+    """
 
     wiki_maps = requests.get(
         URL,
@@ -66,6 +118,16 @@ def get_card_map_data() -> Tuple[dict, dict]:
                 "alias": name.lower().replace(" ", "").replace("'", "")
             }
 
+    return maps 
+
+
+def fetch_cards(current_league: str, maps: Dict[str, Map]):
+    """
+        Fetch Map and Area data from PoE Wiki API (cargoquery)
+
+        Returns:
+            Dict[str, Map]: A Dictionary of Maps. Where the key is the Map id and the value is a Dictionary representing the Map
+    """
     wiki_cards = requests.get(
         URL,
         params={
@@ -95,8 +157,8 @@ def get_card_map_data() -> Tuple[dict, dict]:
         if ninja_card:
             card_art = ninja_card["artFilename"] #Use this as ID
             drop_area_ids = card["drop areas"]
-            drop_areas = []
 
+            drop_areas = []
             if drop_area_ids:
                 drop_area_ids = drop_area_ids.split(",")
                 for drop_area in drop_area_ids:
@@ -137,10 +199,5 @@ def get_card_map_data() -> Tuple[dict, dict]:
             new_reward_text.append({"tag": match[0], "text": match[1].replace("{", "").replace("}", "")})
         
         card["reward_text"] = new_reward_text
-
-    #Remove any area that has no cards
-    maps = {k: v for k, v in maps.items() if "cards" in v}
-
-    return maps, cards
     
-    
+    return cards
