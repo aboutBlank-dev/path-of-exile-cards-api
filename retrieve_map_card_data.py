@@ -24,6 +24,18 @@ class Card(TypedDict):
     art_url: str
     alias: str
 
+def to_snake_case(string: str) -> str:
+    """
+    Converts a string to snake case.
+
+    Args:
+        string (str): The string to convert.
+
+    Returns:
+        str: The string in snake case.
+    """
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', string).lower()
+
 def get_map_card_data() -> Tuple[Dict[str, Map], Dict[str, Card]]:
     """
     Fetches the current league, maps and cards from the PoE Wiki API and PoE Ninja API.
@@ -103,18 +115,21 @@ def fetch_maps(current_league: str) -> Dict[str, Map]:
 
     maps = {}
     for map in wiki_maps:
-        id = map["title"]["area id"]
+        area_id = map["title"]["area id"]
         name = None
+
         for area in wiki_areas:
-            if area["title"]["id"] == id:
+            if area["title"]["id"] == area_id:
                 name = area["title"]["name"]
                 break
 
+        map_id = to_snake_case(map["title"]["area id"])
+
         if name:
-            maps[id] = {
-                "id": id,
+            maps[map_id] = {
+                "id": map_id,
                 "name": name,
-                "unique": "unique" in id.lower(), 
+                "unique": "unique" in map_id.lower(), 
                 "alias": name.lower().replace(" ", "").replace("'", "")
             }
 
@@ -156,24 +171,25 @@ def fetch_cards(current_league: str, maps: Dict[str, Map]):
         
         if ninja_card:
             card_art = ninja_card["artFilename"] #Use this as ID
+            card_id = to_snake_case(card_art)
             drop_area_ids = card["drop areas"]
 
             drop_areas = []
             if drop_area_ids:
                 drop_area_ids = drop_area_ids.split(",")
                 for drop_area in drop_area_ids:
-                    drop_area_id = drop_area.strip()
+                    drop_area_id = to_snake_case(drop_area)
                     if drop_area_id in maps:
                         drop_areas.append(drop_area_id)
                         if "cards" not in maps[drop_area_id]:
                             maps[drop_area_id]["cards"] = []
-                        maps[drop_area_id]["cards"].append(card_art)
+                        maps[drop_area_id]["cards"].append(card_id)
 
             if len(drop_areas) < 1:
                 continue
 
-            cards[card_art] = {
-               "id": card_art,
+            cards[card_id] = {
+               "id": card_id,
                "name": name,
                "drop_areas": drop_areas, 
                "stack_size": ninja_card["stackSize"] if "stackSize" in ninja_card else 1,
@@ -196,7 +212,7 @@ def fetch_cards(current_league: str, maps: Dict[str, Map]):
         #find all <tag>{content} and turn it into a list of tuples with tag and content
         matches = re.findall(r'<(\w+)>([^<]+)', reward_text["text"])
         for match in matches:
-            new_reward_text.append({"tag": match[0], "text": match[1].replace("{", "").replace("}", "")})
+            new_reward_text.append({"tag": match[0], "text": match[1].replace("{", "").replace("}", "").strip()})
         
         card["reward_text"] = new_reward_text
     
