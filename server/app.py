@@ -6,7 +6,3 @@ app = FastAPI()
 app.include_router(card_router, prefix="/cards", tags=["Cards"])
 app.include_router(map_router, prefix="/maps", tags=["Maps"])
 
-@app.get("/")
-def read_root():
-    return {"message": "Hello World"}
-
