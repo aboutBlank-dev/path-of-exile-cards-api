@@ -1,9 +1,10 @@
 import re
+import os
 from typing import Dict, List, Tuple, TypedDict
 import requests
 
 URL = "https://www.poewiki.net/w/api.php"
-POE_LEAGUE_URL = "https://api.pathofexile.com/leagues"
+POE_LEAGUE_URL = "https://api.pathofexile.com/league"
 POE_NINJA_DIV_URL = "https://poe.ninja/api/data/itemoverview?type=DivinationCard&league="
 CARD_ART_URL_BASE = "https://web.poecdn.com/image/divination-card/"
 
@@ -73,7 +74,12 @@ def fetch_current_league() -> str:
         params={
             "realm": "pc",
             "type": "main",
-        }).json()
+        })
+
+    try:
+        current_leagues = current_leagues.json()
+    except:
+        return os.getenv("CURRENT_LEAGUE")
 
     for league in current_leagues:
         if "current" in league["category"]:
@@ -99,7 +105,8 @@ def fetch_maps(current_league: str) -> Dict[str, Map]:
             "fields": "maps.area_id",
             "where": f"maps.series='{current_league}' AND maps.guild_character NOT LIKE '' AND maps.area_id NOT LIKE '%Synthesised%' AND maps.tier<=16",
         },
-    ).json()["cargoquery"]
+    )
+    wiki_maps = wiki_maps.json()["cargoquery"]
 
     wiki_areas = requests.get(
         URL,
@@ -111,7 +118,8 @@ def fetch_maps(current_league: str) -> Dict[str, Map]:
             "fields": "areas.name, areas.id",
             "where": "areas.id LIKE 'MapWorlds%' AND areas.is_legacy_map_area=false AND (areas.is_unique_map_area=true OR areas.is_map_area=true)",
         },
-    ).json()["cargoquery"]
+    )
+    wiki_areas = wiki_areas.json()["cargoquery"]
 
     maps = {}
     for map in wiki_maps:
@@ -153,9 +161,12 @@ def fetch_cards(current_league: str, maps: Dict[str, Map]):
             "fields": "items.name, items.drop_areas, items.drop_text",
             "where": f'items.class_id="DivinationCard" AND items.drop_enabled="1"',
         },
-    ).json()["cargoquery"]
+    )
+    wiki_cards = wiki_cards.json()["cargoquery"]
 
     poe_ninja_prices = requests.get(POE_NINJA_DIV_URL + current_league).json()["lines"]
+    print("URL ==== ", POE_NINJA_DIV_URL + current_league)
+    print("POE NINJA PRICES ===== ", poe_ninja_prices)
 
     cards = {}
     for card in wiki_cards:
