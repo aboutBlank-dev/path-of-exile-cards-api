@@ -47,9 +47,9 @@ SUPABASE_KEY=<YOUR_SUPABASE_KEY>
 
 ## Technologies used
 
-- FastAPI with uvicorn
-- Supabase for the database
-- Pydantic (comes with FastAPI) for data validation
+- FastAPI with uvicorn to run the server
+- Supabase (free tier) for the database
+- Pydantic (comes with FastAPI) for schema and data validation
 - Docker for containerization & deploying to Render
 
 ## Data source
