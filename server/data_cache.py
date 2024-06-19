@@ -19,6 +19,15 @@ class DataCache:
             return self._cards.values()
         return None
 
+    def get_cards(self, ids):
+        self.fetch_data_if_needed()
+
+        cards = []
+        for id in ids:
+            if id in self._cards:
+                cards.append(self._cards[id])
+        return cards
+
     def get_card_id(self, id):
         self.fetch_data_if_needed()
 
@@ -32,6 +41,15 @@ class DataCache:
         if len(self._maps) > 0:
             return self._maps.values()
         return None
+    
+    def get_maps(self, ids):
+        self.fetch_data_if_needed()
+
+        maps = []
+        for id in ids:
+            if id in self._maps:
+                maps.append(self._maps[id])
+        return maps
 
     def get_map_id(self, id):
         self.fetch_data_if_needed()
