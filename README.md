@@ -4,6 +4,9 @@ This is a very simple RESTful API for getting which Divination Cards can drop fr
 
 This was mainly created as a learning project.
 
+You can find the API docs at: `https://poecardsapi.onrender.com/docs`
+It is using the free product tier at [Render](https://render.com/). so it might take **a few seconds** to load the first time.
+
 ## Setup
 
 1. Clone the repository
@@ -47,6 +50,7 @@ SUPABASE_KEY=<YOUR_SUPABASE_KEY>
 - FastAPI with uvicorn
 - Supabase for the database
 - Pydantic (comes with FastAPI) for data validation
+- Docker for containerization & deploying to Render
 
 ## Data source
 
