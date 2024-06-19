@@ -73,11 +73,12 @@ def fetch_current_league() -> str:
         headers={'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'},
         params={
             "realm": "pc",
-            "type": "main",
         })
 
     try:
         current_leagues = current_leagues.json()
+        if "error" in current_leagues:
+            raise Exception("Error fetching current leagues")
     except:
         return os.getenv("CURRENT_LEAGUE")
 
@@ -165,8 +166,6 @@ def fetch_cards(current_league: str, maps: Dict[str, Map]):
     wiki_cards = wiki_cards.json()["cargoquery"]
 
     poe_ninja_prices = requests.get(POE_NINJA_DIV_URL + current_league).json()["lines"]
-    print("URL ==== ", POE_NINJA_DIV_URL + current_league)
-    print("POE NINJA PRICES ===== ", poe_ninja_prices)
 
     cards = {}
     for card in wiki_cards:
