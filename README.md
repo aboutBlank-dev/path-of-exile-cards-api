@@ -4,7 +4,7 @@ This is a very simple RESTful API for getting which Divination Cards can drop fr
 
 This was mainly created as a learning project.
 
-You can find the API docs at: `https://poecardsapi.onrender.com/docs`
+You can find the API docs at: https://poecardsapi.onrender.com/docs
 It is using the free product tier at [Render](https://render.com/). so it might take **a few seconds** to load the first time.
 
 ## Setup
